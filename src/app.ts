@@ -5,8 +5,9 @@ import {exec, cd} from "shelljs";
 app.get('/', function (req, res) {
     exec('java -version', code => {
         console.log('Exit code:', code);
+        res.send('Hello World!' + code);
     });
-    res.send('Hello World!');
+
 });
 
 app.listen(3000, function () {
