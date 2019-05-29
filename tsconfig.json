@@ -1,11 +1,21 @@
 {
   "compilerOptions": {
+    "target": "es2015",
+    "lib": [
+      "es2015"
+    ],
+    "types": [
+      "@types/node"
+    ],
     "module": "commonjs",
-    "esModuleInterop": true,
-    "target": "es6",
     "moduleResolution": "node",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "sourceMap": true,
-    "outDir": "dist"
+    "declaration": false,
+    "outDir": "./build"
   },
-  "lib": ["es2015"]
+  "exclude": [
+    "node_modules"
+  ]
 }
