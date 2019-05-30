@@ -1,6 +1,7 @@
 import {UtilsService} from "./MutationTest.Util/UtilsService";
 import {FolderService} from "./MutationTest.Util/FolderService";
 import * as Path from "path";
+import {IRipConfig} from "./MutationTest.Util/models/RipConfig";
 
 
 export class AppStart {
@@ -8,29 +9,44 @@ export class AppStart {
     private _utilService;
     private _folderService;
     private APK_NAME = "com.evancharlton.mileage_3110-aligned-debugSigned.apk";
-    private APK_FOLDER = "apks";
+    private APKS_FOLDER = "apks";
 
     constructor() {
         this._utilService = new UtilsService();
         this._folderService = new FolderService();
+
     }
 
     public async runAllTests() {
+        const self = this;
         if (this.validateEnv()) {
-            const self = this;
-            const apksFolder = Path.join(__dirname, '..', this.APK_FOLDER);
+            const apksFolder = Path.join(__dirname, '..', this.APKS_FOLDER);
             const mutationFolders = await this._folderService.findFilesOnFolder(apksFolder, "apk");
-
             for (let index = 0; index < mutationFolders.length; index++) {
                 const item = mutationFolders[index];
-                await self.runSingleTest(item);
+                await self.runSingleTest(Path.join(this.APKS_FOLDER, item));
             }
         }
     }
 
     public async runSingleTest(mutationFolder) {
         const mutationFilePath = Path.join(mutationFolder, this.APK_NAME);
-        console.log("java -jar RIP.jar rip_config.json", mutationFilePath);
+        const command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
+        const ripConfig: IRipConfig = {
+            apkPath: Path.join(mutationFilePath),
+            outputFolder: Path.join(mutationFolder, 'output'),
+            isHybrid: false,
+            executionMode: "events",
+            scriptPath: Path.join(mutationFolder, 'output', 'result.json'),
+            executionParams: {
+                events: 20,
+                time: 2
+            }
+        };
+        await this._folderService.createConfigFile(mutationFolder, ripConfig);
+
+        await this._utilService.executeCommand(command);
+        console.log(command);
     }
 
 

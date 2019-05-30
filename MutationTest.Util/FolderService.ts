@@ -1,4 +1,6 @@
 import * as fs from "fs-extra";
+import * as Path from "path";
+import {IRipConfig} from "./models/RipConfig";
 
 export class FolderService {
     public async findFilesOnFolder(folderPath, filter) {
@@ -13,4 +15,9 @@ export class FolderService {
         }
         return fs.readdirSync(folderPath);
     }
+
+    public async createConfigFile(folder: string, data: IRipConfig) {
+        fs.writeFileSync(Path.join(folder, 'rip_config.json'), JSON.stringify(data));
+    }
+
 }
