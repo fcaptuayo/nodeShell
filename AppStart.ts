@@ -28,13 +28,18 @@ export class AppStart {
             for (let index = 0; index < mutationFolders.length; index++) {
                 const item = mutationFolders[index];
                 const isBase = index == 0; //we assume that the first file is the base
-                // Todo: hacer un clean de los archivos anteriores carpeta output, arpeta result y archivo rip_config.json
+                await this.cleanPreviousResults(Path.join(this.APKS_FOLDER, item));
                 await self.runSingleTest(isBase, Path.join(this.APKS_FOLDER, item));
                 if (this.basePath) {
                     await self.compareWithBase(Path.join(this.APKS_FOLDER, item));
                 }
             }
         }
+    }
+
+    public async cleanPreviousResults(mutationFolder) {
+        await this._folderService.emptyFolder(Path.join(mutationFolder, 'output'));
+        await this._folderService.emptyFolder(Path.join(mutationFolder, 'result'));
     }
 
     public async runSingleTest(isBaseApk: boolean, mutationFolder) {
@@ -55,7 +60,7 @@ export class AppStart {
             executionMode: "events",
             scriptPath: scriptPath,//Todo: configurar bien esto para que ejecute los mismos pasos de la prueba base
             executionParams: {
-                events: 5,
+                events: 10,
                 time: 2
             }
         };

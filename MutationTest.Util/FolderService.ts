@@ -25,4 +25,8 @@ export class FolderService {
         fs.writeFileSync(Path.join(folder, 'rip_config.json'), JSON.stringify(data));
     }
 
+    public async emptyFolder(folder) {
+        await fs.emptyDirSync(Path.join(folder));
+    }
+
 }
