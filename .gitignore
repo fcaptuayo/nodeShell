@@ -311,3 +311,4 @@ cypress/**/
 apks/**/
 
 
+**/MutationTest.Util/output/**
