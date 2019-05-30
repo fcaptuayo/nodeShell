@@ -105,19 +105,26 @@ export class UtilsService {
     }
 
     public executeCommand = command => {
+        console.log("│   Running command !!!                                       ");
+        console.log(`│   ${command}    `);
+        console.log("│                                                             ");
         return new Promise((resolve, reject) => {
-            console.log(`UtilsService executeCommand start: command = ${command}`);
-            node_cmd.run(command, {
+            console.log(`│   UtilsService executeCommand start: command = ${command}`);
+            node_cmd.run(command/*, {
                 onData: function (data) {
                     // print output step by step
                     console.log(data);
                 }
-            })
+            }*/)
                 .then(function (exitCodes) {
-                    console.log(`UtilsService executeCommand ends: exitCodes = ${exitCodes}`);
+                    console.log(`│   UtilsService executeCommand ends: exitCodes = ${exitCodes}`);
+                    console.log("└───────────────┴───────────────┴───────────────────────────────────────────────────────────────────────────┘");
+                    console.log("\n\n\n");
                     resolve();
                 }, function (err) {
-                    console.log(`UtilsService executeCommand ends: error = ${err}`);
+                    console.log(`│   UtilsService executeCommand ends: error = ${err}`);
+                    console.log("└───────────────┴───────────────┴───────────────────────────────────────────────────────────────────────────┘");
+                    console.log("\n\n\n");
                     reject(err);
                 });
         });

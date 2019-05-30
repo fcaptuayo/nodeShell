@@ -9,6 +9,7 @@ npm run test
 npm run test:debug
 ````
 
+![Alt text](apks_sample.png)
 
 Para poder ejecutar RIP y RIPRR es necesario que exista la variable de sistema AAPT_LOCATION que debe dirigir hacia el archivo aapt.exe
 

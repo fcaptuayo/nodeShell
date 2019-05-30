@@ -2,51 +2,75 @@ import {UtilsService} from "./MutationTest.Util/UtilsService";
 import {FolderService} from "./MutationTest.Util/FolderService";
 import * as Path from "path";
 import {IRipConfig} from "./MutationTest.Util/models/RipConfig";
+import {ImageCompareService} from "./MutationTest.Util/ImageCompareService";
 
 
 export class AppStart {
 
     private _utilService;
     private _folderService;
+    private _imageCompareService;
     private APK_NAME = "com.evancharlton.mileage_3110-aligned-debugSigned.apk";
     private APKS_FOLDER = "apks";
+    private basePath = null;
 
     constructor() {
         this._utilService = new UtilsService();
         this._folderService = new FolderService();
-
+        this._imageCompareService = new ImageCompareService();
     }
 
     public async runAllTests() {
         const self = this;
         if (this.validateEnv()) {
             const apksFolder = Path.join(__dirname, '..', this.APKS_FOLDER);
-            const mutationFolders = await this._folderService.findFilesOnFolder(apksFolder, "apk");
+            const mutationFolders = await this._folderService.findFilesOnFolder(apksFolder);
             for (let index = 0; index < mutationFolders.length; index++) {
                 const item = mutationFolders[index];
-                await self.runSingleTest(Path.join(this.APKS_FOLDER, item));
+                const isBase = index == 0; //we assume that the first file is the base
+                // Todo: hacer un clean de los archivos anteriores carpeta output, arpeta result y archivo rip_config.json
+                await self.runSingleTest(isBase, Path.join(this.APKS_FOLDER, item));
+                if (this.basePath) {
+                    await self.compareWithBase(Path.join(this.APKS_FOLDER, item));
+                }
             }
         }
     }
 
-    public async runSingleTest(mutationFolder) {
+    public async runSingleTest(isBaseApk: boolean, mutationFolder) {
         const mutationFilePath = Path.join(mutationFolder, this.APK_NAME);
-        const command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
+        let command = "java -jar RIPRR.jar " + Path.join(mutationFolder, 'rip_config.json');
+        let scriptPath = Path.join(mutationFolder, 'output', 'result.json');
+        if (isBaseApk) {
+            // this command is only for de base apk
+            this.basePath = mutationFolder;
+            scriptPath = Path.join(this.basePath, 'output', 'result.json');
+            command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
+        }
+
         const ripConfig: IRipConfig = {
             apkPath: Path.join(mutationFilePath),
             outputFolder: Path.join(mutationFolder, 'output'),
             isHybrid: false,
             executionMode: "events",
-            scriptPath: Path.join(mutationFolder, 'output', 'result.json'),
+            scriptPath: scriptPath,//Todo: configurar bien esto para que ejecute los mismos pasos de la prueba base
             executionParams: {
-                events: 20,
+                events: 5,
                 time: 2
             }
         };
+        console.log("┌───────────────┬───────────────┬───────────────────────────────────────────────────────────────────────────┐");
+        console.log(`│  ${JSON.stringify(ripConfig)}`);
         await this._folderService.createConfigFile(mutationFolder, ripConfig);
 
         await this._utilService.executeCommand(command);
-        console.log(command);
+    }
+
+    public async compareWithBase(mutationFolder) {
+        const beforeFolder = Path.join(this.basePath, 'output');
+        const afterFolder = Path.join(mutationFolder, 'output');
+        const resultFolder = Path.join(mutationFolder, 'result');
+        await this._imageCompareService.compareImagesFromDir(beforeFolder, afterFolder, resultFolder, '.png');
     }
 
 
