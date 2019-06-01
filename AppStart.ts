@@ -11,8 +11,9 @@ export class AppStart {
     private _folderService;
     private _imageCompareService;
     private APK_NAME = "com.evancharlton.mileage_3110-aligned-debugSigned.apk";
+    private APK_NAME_BASE = "com.evancharlton.mileage_3110.apk";
     private APKS_FOLDER = "apks";
-    private basePath = null;
+    private basePath = "/";
 
     constructor() {
         this._utilService = new UtilsService();
@@ -27,12 +28,13 @@ export class AppStart {
             const mutationFolders = await this._folderService.findFilesOnFolder(apksFolder);
             for (let index = 0; index < mutationFolders.length; index++) {
                 const item = mutationFolders[index];
+                console.log(Path.join(this.APKS_FOLDER, item));
                 const isBase = index == 0; //we assume that the first file is the base
                 await this.cleanPreviousResults(Path.join(this.APKS_FOLDER, item));
                 await self.runSingleTest(isBase, Path.join(this.APKS_FOLDER, item));
-                if (this.basePath) {
+                /*if (this.basePath) {
                     await self.compareWithBase(Path.join(this.APKS_FOLDER, item));
-                }
+                }*/
             }
         }
     }
@@ -43,32 +45,37 @@ export class AppStart {
     }
 
     public async runSingleTest(isBaseApk: boolean, mutationFolder) {
-        const mutationFilePath = Path.join(mutationFolder, this.APK_NAME);
+        let mutationFilePath = Path.join(mutationFolder, this.APK_NAME);
         let command = "java -jar RIPRR.jar " + Path.join(mutationFolder, 'rip_config.json');
-        let scriptPath = Path.join(mutationFolder, 'output', 'result.json');
+        let uninstallApk = "adb uninstall com.evancharlton.mileage";
+        let scriptPath = Path.join(this.basePath, 'output', 'result.json');
         if (isBaseApk) {
             // this command is only for de base apk
             this.basePath = mutationFolder;
             scriptPath = Path.join(this.basePath, 'output', 'result.json');
             command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
+            // define name apk base
+            mutationFilePath = Path.join(mutationFolder, this.APK_NAME_BASE);
         }
-
         const ripConfig: IRipConfig = {
             apkPath: Path.join(mutationFilePath),
             outputFolder: Path.join(mutationFolder, 'output'),
             isHybrid: false,
             executionMode: "events",
-            scriptPath: scriptPath,//Todo: configurar bien esto para que ejecute los mismos pasos de la prueba base
+            scriptPath: scriptPath,
             executionParams: {
                 events: 10,
                 time: 2
             }
         };
+
         console.log("┌───────────────┬───────────────┬───────────────────────────────────────────────────────────────────────────┐");
         console.log(`│  ${JSON.stringify(ripConfig)}`);
         await this._folderService.createConfigFile(mutationFolder, ripConfig);
 
         await this._utilService.executeCommand(command);
+
+        await this._utilService.executeCommand(uninstallApk);
     }
 
     public async compareWithBase(mutationFolder) {
