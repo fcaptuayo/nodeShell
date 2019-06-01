@@ -26,13 +26,7 @@ export class FolderService {
     }
 
     public async emptyFolder(folder) {
-        if (!fs.existsSync(folder)) {
-            console.log("┌───────────────┬───────────────┬──────────────────────────────────┐");
-            console.log(`│   The folder ${folder}            │`);
-            console.log("│   does not exists                                                │");
-            console.log("└───────────────┴───────────────┴──────────────────────────────────┘");
-            return [];
-        } else {
+        if (fs.existsSync(folder)) {
             await fs.emptyDirSync(Path.join(folder));
         }
     }

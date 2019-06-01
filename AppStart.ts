@@ -46,15 +46,13 @@ export class AppStart {
 
     public async runSingleTest(isBaseApk: boolean, mutationFolder) {
         let mutationFilePath = Path.join(mutationFolder, this.APK_NAME);
-        let command = "java -jar RIPRR.jar " + Path.join(mutationFolder, 'rip_config.json');
+        let command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
         let uninstallApk = "adb uninstall com.evancharlton.mileage";
         let scriptPath = Path.join(this.basePath, 'output', 'result.json');
         if (isBaseApk) {
-            // this command is only for de base apk
             this.basePath = mutationFolder;
             scriptPath = Path.join(this.basePath, 'output', 'result.json');
             command = "java -jar RIP.jar " + Path.join(mutationFolder, 'rip_config.json');
-            // define name apk base
             mutationFilePath = Path.join(mutationFolder, this.APK_NAME_BASE);
         }
         const ripConfig: IRipConfig = {
@@ -64,7 +62,7 @@ export class AppStart {
             executionMode: "events",
             scriptPath: scriptPath,
             executionParams: {
-                events: 10,
+                events: 10000,
                 time: 2
             }
         };
@@ -75,6 +73,8 @@ export class AppStart {
 
         await this._utilService.executeCommand(command);
 
+        console.log("┌───────────────┬───────────────┬───────────────────────────────────────────────────────────────────────────┐");
+        console.log(`│  Uninstall apk, ( ${JSON.stringify(uninstallApk)} )`);
         await this._utilService.executeCommand(uninstallApk);
     }
 
