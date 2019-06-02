@@ -9,10 +9,12 @@ export class ImageCompareService {
     }
 
     public async compareImagesFromDir(beforePath, afterPath, resultPath, filter) {
+        let misMatchPercentageTotal = 0;
+        let misMatchPercentageAverage = 100;
         console.log("┌───────────────┬───────────────┬───────────────────────────────────────────────────────────────────────────┐");
-        console.log(`│   beforePath ${beforePath}            │`);
-        console.log(`│   afterPath  ${afterPath}             │`);
-        console.log(`│   resultPath ${resultPath}            │`);
+        console.log(`│   beforePath ${beforePath}            `);
+        console.log(`│   afterPath  ${afterPath}             `);
+        console.log(`│   resultPath ${resultPath}            `);
         let dataResult = {};
         if (!fs.existsSync(beforePath)) {
             console.log("no dir ", beforePath);
@@ -22,8 +24,8 @@ export class ImageCompareService {
             return Path.extname(file).toLowerCase() === filter;
         });
 
-        console.log('files', files);
-        console.log('ensure ', resultPath);
+        //console.log('files', files);
+        //console.log('ensure ', resultPath);
 
         if (!fs.existsSync(resultPath)) {
             fs.mkdirSync(resultPath);
@@ -41,12 +43,24 @@ export class ImageCompareService {
             const result = await this.executeCompare(beforeFilePath, afterFilePath, resultFilePath);
             if (result) {
                 dataResult[baseName] = result.misMatchPercentage;
+                misMatchPercentageTotal = misMatchPercentageTotal + parseFloat(result.misMatchPercentage);
+            } else {
+                dataResult[baseName] = 100;
+                misMatchPercentageTotal = misMatchPercentageTotal + 100.0;
             }
 
         }
+
+        if (Object.keys(dataResult).length > 0){
+            misMatchPercentageAverage = misMatchPercentageAverage - (misMatchPercentageTotal/files.length);
+        } else {
+            misMatchPercentageAverage = 0;
+        }
+
+        console.log(`|   VRT AVERAGE THE MUTATION TEST ( ${JSON.stringify(misMatchPercentageAverage)} %)        |`    );
         console.log("└───────────────┴───────────────┴───────────────────────────────────────────────────────────────────────────┘");
         console.log("\n\n\n");
-        return dataResult;
+        return misMatchPercentageAverage;
     }
 
     public async executeCompare(imageBefore, imageAfter, imageOutput) {
@@ -73,14 +87,12 @@ export class ImageCompareService {
             scaleToSameSize: true,
             ignore: ['nothing', 'less', 'antialiasing', 'colors', 'alpha'],
         };
-        const data: any = {};
-        //Todo: hacer funcionar esto
-        /*data = await compareImages(
+        const data = await compareImages(
             await fs.readFile(input_image01),
             await fs.readFile(input_image02),
             options
         );
-        await fs.writeFile(output_image, data.getBuffer());*/
+        await fs.writeFile(output_image, data.getBuffer());
         return data;
     }
 

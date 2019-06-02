@@ -32,9 +32,6 @@ export class AppStart {
                 const isBase = index == 0; //we assume that the first file is the base
                 await this.cleanPreviousResults(Path.join(this.APKS_FOLDER, item));
                 await self.runSingleTest(isBase, Path.join(this.APKS_FOLDER, item));
-                /*if (this.basePath) {
-                    await self.compareWithBase(Path.join(this.APKS_FOLDER, item));
-                }*/
             }
         }
     }

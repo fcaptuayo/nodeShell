@@ -6,7 +6,8 @@
   "scripts": {
     "tsc": "tsc",
     "test:debug": "ts-node-dev --respawn --transpileOnly AppStart.ts",
-    "test": "tsc && node ./build/AppStart.js"
+    "test": "tsc && node ./build/AppStart.js",
+    "test:resembleStart": "tsc && node ./build/ResembleStart.js"
   },
   "author": "",
   "license": "ISC",
